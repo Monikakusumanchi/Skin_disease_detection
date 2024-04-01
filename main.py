@@ -10,6 +10,9 @@ from PIL import Image
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.responses import HTMLResponse
 import google.generativeai as genai
+import shutil
+import os
+import subprocess
 
 
 app = FastAPI()
@@ -84,3 +87,54 @@ async def get_gemini_completion(
         return templates.TemplateResponse("chat.html", {"request": request, "response": response.text})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+def run_detection(source_image_path, weights_path):
+    command = f'!yolo task=./runs/detect mode=predict model=./runs/detect/train7/weights/best.pt conf=0.25 source="{source_image_path}"'
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = process.communicate()
+    return_value = stdout.decode().strip()
+    
+    if process.returncode != 0:
+        return f"Error occurred: {stderr.decode('utf-8')}"
+    else:
+        return f"Detection successful:\n{stdout.decode('utf-8')}"
+
+UPLOAD_FOLDER = 'static'
+@app.post("/predict/", response_class=HTMLResponse)
+async def predict(source_image: UploadFile = File(...)):
+    # Save the uploaded image
+    print("hello")
+    image_path = f"{UPLOAD_FOLDER}/{source_image.filename}"
+    save_path = os.path.join(UPLOAD_FOLDER, source_image.filename)
+
+    with open(save_path, "wb") as image:
+         content = await source_image.read()
+         image.write(content)
+    
+    # Define weights path
+    weights_path = "./runs/detect/train7/weights/best.pt"
+    path = "./static/mel1.jpeg"
+    # Run detection
+    detection_result = run_detection(path, weights_path)
+    
+    # Clean up temporary files
+    # os.remove(save_path)
+    
+    return {"result": detection_result}
+
+# @app.post("/upload_image", response_class=HTMLResponse)
+# async def upload_image( request: Request,image_file: UploadFile = File(...)):
+#     image_path = f"{UPLOAD_FOLDER}/{image_file.filename}"
+#     save_path = os.path.join(UPLOAD_FOLDER, image_file.filename)
+    
+#     with open(save_path, "wb") as image:
+#         content = await image_file.read()
+#         image.write(content)
+    
+#     predictions = process_image(image_path)
+    
+#     context = {
+#         "request": request,
+#

@@ -12,3 +12,5 @@ opencv-python
 tensorflow
 Pillow
 google-generativeai
+requests
+
