@@ -77,7 +77,7 @@ def get_gemini_completion(
                             prompt: str = Form(...),  
                         ):
     try:
-        gemini_api_key = "AIzaSyBh3fToqMeYmRaRxQG-igpnOYSTMCSx7SY"
+        gemini_api_key = ""
         genai.configure(api_key = gemini_api_key)
         model = genai.GenerativeModel('gemini-pro')
         response = model.generate_content(prompt)
