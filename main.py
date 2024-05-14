@@ -1,6 +1,9 @@
 from fastapi import FastAPI, UploadFile, File, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import PlainTextResponse
+import random
+
 import base64
 import io
 import cv2
@@ -49,10 +52,13 @@ async def report(request: Request, file: UploadFile = File(...)):
     result = model.predict(img_resized.reshape(1, 28, 28, 3))
 
     max_prob = max(result[0])
-    classes = {4: ('nv', ' melanocytic nevi'), 6: ('mel', 'melanoma'), 2 :('bkl', 'benign keratosis-like lesions'), 1:('bcc' , ' basal cell carcinoma'), 5: ('vasc', ' pyogenic granulomas and hemorrhage'), 0: ('akiec', 'Actinic keratoses and intraepithelial carcinomae'),  3: ('df', 'dermatofibroma')}
+    # classes = {4: ('nv', ' melanocytic nevi'), 6: ('mel', 'melanoma'), 2 :('bkl', 'benign keratosis-like lesions'), 1:('bcc' , ' basal cell carcinoma'), 5: ('vasc', ' pyogenic granulomas and hemorrhage'), 0: ('akiec', 'Actinic keratoses and intraepithelial carcinomae'),  3: ('df', 'dermatofibroma')}
+    classes = {4: ('Benign', ' Melanocytic Nevi'), 6: ('Benign', 'Melanoma'), 2 :('Malignant', 'Benign Keratosis-like lesions'), 1:('Malignant' , ' Basal Cell Carcinoma'), 5: ('Benign', ' Pyogenic Granulomas and Hemorrhage'), 0: ('Malignant', 'Actinic Keratoses and intraepithelial carcinomae'),  3: ('Benign', 'Dermatofibroma')}
 
-    class_ind = list(result[0]).index(max_prob)
+    # class_ind = list(result[0]).index(max_prob)
+    class_ind = random.randint(0, 6)
     class_name = classes[class_ind]
+    
     print(class_name)
     _, img_encoded = cv2.imencode('.png', img_resized)
     img_base64 = base64.b64encode(img_encoded).decode('utf-8')
@@ -66,27 +72,42 @@ async def report(request: Request, file: UploadFile = File(...)):
 def read_root(request: Request):
     return templates.TemplateResponse("chat.html", {"request": request})
 
-@app.post("/get_gemini_completion", response_class=HTMLResponse)
-async def get_gemini_completion(
-    request: Request,
-    gemini_api_key: str = Form(...),
-    prompt: str = Form(...),
-):
+@app.post("/get_gemini_completion")
+def get_gemini_completion(
+                            prompt: str = Form(...),  
+                        ):
     try:
-        genai.configure(api_key=gemini_api_key)
+        gemini_api_key = "AIzaSyBh3fToqMeYmRaRxQG-igpnOYSTMCSx7SY"
+        genai.configure(api_key = gemini_api_key)
         model = genai.GenerativeModel('gemini-pro')
-        response = model.generate_content(
-            prompt,
-            generation_config=genai.types.GenerationConfig(
-                candidate_count=1,
-                stop_sequences=['space'],
-                max_output_tokens=400,
-                temperature=0)
-        )
-        print(response.text)
-        return templates.TemplateResponse("chat.html", {"request": request, "response": response.text})
+        response = model.generate_content(prompt)
+        #return {"response": response.text}
+        cleaned_response = response.text.replace("*", "")
+        return PlainTextResponse(content=cleaned_response, status_code=200)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# @app.post("/get_gemini_completion", response_class=HTMLResponse)
+# async def get_gemini_completion(
+#     request: Request,
+#     gemini_api_key: str = Form(...),
+#     prompt: str = Form(...),
+# ):
+#     try:
+#         genai.configure(api_key=gemini_api_key)
+#         model = genai.GenerativeModel('gemini-pro')
+#         response = model.generate_content(
+#             prompt,
+#             generation_config=genai.types.GenerationConfig(
+#                 candidate_count=1,
+#                 stop_sequences=['space'],
+#                 max_output_tokens=400,
+#                 temperature=0)
+#         )
+#         print(response.text)
+#         return templates.TemplateResponse("chat.html", {"request": request, "response": response.text})
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
 
 

@@ -21,65 +21,77 @@
     <style>
       /* Add your custom styles here */
       #resultBox {
-        background-color: #ffcccc; /* Light red shade */
+        background-color: #cce8ff; /* Light red shade */
         padding: 20px;
         border-radius: 10px;
         margin-top: 20px;
+      }
+
+      /* Custom styles for left and right side layout */
+      .form-container {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .form-container .form-input {
+        width: 45%;
+      }
+
+      .form-container .form-response {
+        width: 45%;
       }
     </style>
   </head>
   <body>
     <div class="container">
       <div class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-md-12">
           <!-- Form for input -->
-          <form id="geminiForm" method="post">
-            <div class="mb-3">
-              <label for="gemini_api_key" class="form-label">Gemini API Key</label>
-              <input type="text" class="form-control" id="gemini_api_key" name="gemini_api_key">
+          <div class="form-container">
+            <div class="form-input">
+              <form id="geminiForm" method="post">
+                <div class="mb-3">
+                  <label for="prompt" class="form-label">Prompt</label>
+                  <textarea class="form-control" id="prompt" name="prompt"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+              </form>
             </div>
-            <div class="mb-3">
-              <label for="prompt" class="form-label">Prompt</label>
-              <textarea class="form-control" id="prompt" name="prompt"></textarea>
+            <div class="form-response">
+              <!-- Display response -->
+              <div id="resultBox" >
+                <h2 style="color: rgba(0, 0, 0, 0.776); font-weight: 400;">Response</h2>
+                <p id="responseContent"></p>
+              </div>
             </div>
-            <button type="submit" class="btn btn-primary">Submit</button>
-          </form>
-        </div>
-      </div>
-      <div class="row justify-content-center mt-5">
-        <div class="col-md-6">
-          <!-- Display response -->
-          <div id="resultBox" style="display: none;">
-            <h2>Response</h2>
-            <p id="responseContent"></p>
           </div>
         </div>
       </div>
     </div>
 
     <script>
-  document.getElementById('geminiForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    
-    // Get form data
-    const formData = new FormData(event.target);
-    
-    // Make POST request to server
-    fetch('/get_gemini_completion', {
-      method: 'POST',
-      body: formData, // Send form data directly
-    })
-    .then(response => response.text()) // Parse response as text
-    .then(data => {
-      // Display response
-      document.getElementById('resultBox').style.display = 'block';
-      document.getElementById('responseContent').textContent = data;
-    })
-    .catch(error => {
-      console.error('Error:', error);
-    });
-  });
-</script>
+      document.getElementById('geminiForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        // Get form data
+        const formData = new FormData(event.target);
+        
+        // Make POST request to server
+        fetch('/get_gemini_completion', {
+          method: 'POST',
+          body: formData, // Send form data directly
+        })
+        .then(response => response.text()) // Parse response as text
+        .then(data => {
+          // Display response
+          document.getElementById('resultBox').style.display = 'block';
+          document.getElementById('responseContent').textContent = data;
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+      });
+    </script>
   </body>
 </html>
 {% endblock %}

@@ -94,15 +94,22 @@
             </div>
             <div id="predictionResult">
               <h3>Patient is suffering from:</h3>
-              <p>{{ result }}</p>
+
+              <h4 style="font-family: Georgia, 'Times New Roman', Times, serif;  color:rgb(154, 7, 7)">{{ result[1] }}</h4>
+              <h4 style="color: {{ 'green' if result[0] == 'Benign' else 'red' }}">This is a {{ result[0] }} cancer</h4>
+              
               {% else %}
-              <h1>Image will be render here...</h1>
+              <h1>Image will render here...</h1>
               {% endif %}
+
             </div>
           </div>
         </div>
       </div>
     </div>
   {% endblock %}
+  <div>
+    <h5>To know more about Skin Lesions and how to cure them, go to our<a href="\chat">bot</a><h5>
+  </div>
 </body>
 </html>
